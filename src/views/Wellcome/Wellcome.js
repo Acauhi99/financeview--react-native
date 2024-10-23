@@ -1,5 +1,5 @@
-import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useRef } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import React, { useCallback, useRef } from "react";
 import { Animated, View } from "react-native";
 import { Button, Text } from "react-native-paper";
 import styles from "./Wellcome.styles";
@@ -8,13 +8,20 @@ const Wellcome = () => {
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
+  const startAnimation = useCallback(() => {
+    fadeAnim.setValue(0);
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 2000,
       useNativeDriver: true,
     }).start();
   }, [fadeAnim]);
+
+  useFocusEffect(
+    useCallback(() => {
+      startAnimation();
+    }, [startAnimation])
+  );
 
   return (
     <View style={styles.container}>
