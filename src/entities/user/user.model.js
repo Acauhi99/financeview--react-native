@@ -1,16 +1,10 @@
 class User {
   constructor() {
-    this.id = null;
     this.firstName = "";
     this.lastName = "";
     this.email = "";
     this.dob = "";
     this.password = "";
-  }
-
-  setId(id) {
-    this.id = id;
-    return this;
   }
 
   setFirstName(firstName) {
