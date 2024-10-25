@@ -1,22 +1,25 @@
 import { useNavigation } from "@react-navigation/native";
 import { Formik } from "formik";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
-import { Button, Text, TextInput } from "react-native-paper";
+import { Button, ProgressBar, Text, TextInput } from "react-native-paper";
+import Icon from "react-native-vector-icons/FontAwesome";
 import { UserContext } from "../../context/UserContext";
+import { AuthService } from "../../entities";
 import { LoginSchema } from "../../validation";
 import styles from "./Login.styles";
 
 const Login = () => {
   const navigation = useNavigation();
   const { setUser } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (values) => {
-    // Lógica de login aqui
-    console.log("Email:", values.email);
-    console.log("Password:", values.password);
-    setUser(values);
+  const handleLogin = async (values) => {
+    setLoading(true);
+    const user = await AuthService.login(values.email, values.password);
+    setUser(user);
     navigation.navigate("Dashboard");
+    setLoading(false);
   };
 
   return (
@@ -58,11 +61,27 @@ const Login = () => {
           {errors.password && touched.password ? (
             <Text style={styles.error}>{errors.password}</Text>
           ) : null}
+          {loading && (
+            <ProgressBar
+              progress={0.5}
+              color="#6200ee"
+              style={styles.progressBar}
+            />
+          )}
+
           <TouchableOpacity onPress={() => navigation.navigate("Register")}>
             <Text style={styles.link}>Criar Conta</Text>
           </TouchableOpacity>
           <Button mode="contained" onPress={handleSubmit} style={styles.button}>
             Login
+          </Button>
+          <Button
+            mode="outlined"
+            icon={() => <Icon name="github" size={20} />}
+            onPress={() => console.log("Logar com GitHub")}
+            style={styles.githubButton}
+          >
+            Logar com GitHub
           </Button>
         </View>
       )}

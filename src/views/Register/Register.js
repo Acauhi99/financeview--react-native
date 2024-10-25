@@ -5,6 +5,7 @@ import { TouchableOpacity, View } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Button, Text, TextInput } from "react-native-paper";
 import { UserContext } from "../../context/UserContext";
+import { AuthService } from "../../entities";
 import { RegisterSchema } from "../../validation";
 import styles from "./Register.styles";
 
@@ -13,15 +14,16 @@ const Register = () => {
   const navigation = useNavigation();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  const handleRegister = (values) => {
-    // Lógica de cadastro aqui
-    setUser(values);
-    console.log("First Name:", values.firstName);
-    console.log("Last Name:", values.lastName);
-    console.log("Email:", values.email);
-    console.log("Date of Birth:", values.dob);
-    console.log("Password:", values.password);
-    console.log("Confirm Password:", values.confirmPassword);
+  const handleRegister = async (values) => {
+    const user = {
+      firstName: values.firstName,
+      lastName: values.lastName,
+      email: values.email,
+      dob: values.dob,
+      password: values.password,
+    };
+    const registeredUser = await AuthService.register(user);
+    setUser(registeredUser);
     navigation.navigate("Dashboard");
   };
 
@@ -94,18 +96,17 @@ const Register = () => {
           {errors.email && touched.email ? (
             <Text style={styles.error}>{errors.email}</Text>
           ) : null}
-          <View style={styles.input}>
-            <TouchableOpacity onPress={showDatePicker}>
-              <TextInput
-                label="Date of Birth"
-                value={values.dob}
-                onChangeText={handleChange("dob")}
-                onBlur={handleBlur("dob")}
-                editable={false}
-                pointerEvents="none"
-              />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity onPress={showDatePicker} style={styles.input}>
+            <TextInput
+              label="Date of Birth"
+              value={values.dob}
+              onChangeText={handleChange("dob")}
+              onBlur={handleBlur("dob")}
+              editable={false}
+              pointerEvents="none"
+              style={styles.input}
+            />
+          </TouchableOpacity>
           {errors.dob && touched.dob ? (
             <Text style={styles.error}>{errors.dob}</Text>
           ) : null}
