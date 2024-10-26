@@ -3,7 +3,7 @@ class User {
     this.firstName = "";
     this.lastName = "";
     this.email = "";
-    this.dob = "";
+    this.birthDate = "";
     this.password = "";
   }
 
@@ -22,8 +22,8 @@ class User {
     return this;
   }
 
-  setDob(dob) {
-    this.dob = dob;
+  setBirthDate(birthDate) {
+    this.birthDate = birthDate;
     return this;
   }
 
