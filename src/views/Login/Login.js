@@ -3,6 +3,7 @@ import { Formik } from "formik";
 import React, { useContext, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { Button, ProgressBar, Text, TextInput } from "react-native-paper";
+import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { UserContext } from "../../context/UserContext";
 import { AuthService } from "../../entities";
@@ -16,10 +17,17 @@ const Login = () => {
 
   const handleLogin = async (values) => {
     setLoading(true);
-    const user = await AuthService.login(values.email, values.password);
-    setUser(user);
-    navigation.navigate("Dashboard");
-    setLoading(false);
+    try {
+      const user = await AuthService.login(values.email, values.password);
+      setUser(user);
+      navigation.navigate("Dashboard");
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: error.message,
+      });
+    }
   };
 
   return (
