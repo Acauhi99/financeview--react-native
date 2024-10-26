@@ -15,13 +15,41 @@ const Stack = createStackNavigator();
 const StackNavigator = () => {
   return (
     <Stack.Navigator initialRouteName="Wellcome">
-      <Stack.Screen name="Wellcome" component={Wellcome} />
-      <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="Register" component={Register} />
-      <Stack.Screen name="Dashboard" component={Dashboard} />
-      <Stack.Screen name="Portfolio" component={Portfolio} />
-      <Stack.Screen name="Transactions" component={Transactions} />
-      <Stack.Screen name="Profile" component={Profile} />
+      <Stack.Screen
+        name="Wellcome"
+        component={Wellcome}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{ headerLeft: null, headerShown: false }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={Register}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Dashboard"
+        component={Dashboard}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Portfolio"
+        component={Portfolio}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Transactions"
+        component={Transactions}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Profile"
+        component={Profile}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
