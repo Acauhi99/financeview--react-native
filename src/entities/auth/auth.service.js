@@ -1,7 +1,7 @@
 import axios from "axios";
 
 class AuthService {
-  static baseURL = "http://localhost:3000/api/auth";
+  static baseURL = "https://finance-tracker-ws.onrender.com/api/auth";
 
   static async login(email, password) {
     try {
@@ -12,7 +12,7 @@ class AuthService {
 
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Erro ao fazer login");
+      throw new Error(error.response?.data?.message);
     }
   }
 
@@ -22,9 +22,7 @@ class AuthService {
 
       return response.data;
     } catch (error) {
-      throw new Error(
-        error.response?.data?.message || "Erro ao registrar usuário"
-      );
+      throw new Error(error.response?.data?.message);
     }
   }
 }
