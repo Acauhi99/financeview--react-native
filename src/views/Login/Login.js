@@ -14,6 +14,7 @@ const Login = () => {
   const navigation = useNavigation();
   const { setUser } = useContext(UserContext);
   const [loading, setLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false); // Estado para alternar visibilidade da senha
 
   const handleLogin = async (values) => {
     setLoading(true);
@@ -58,17 +59,32 @@ const Login = () => {
           {errors.email && touched.email ? (
             <Text style={styles.error}>{errors.email}</Text>
           ) : null}
-          <TextInput
-            label="Password"
-            value={values.password}
-            onChangeText={handleChange("password")}
-            onBlur={handleBlur("password")}
-            style={styles.input}
-            secureTextEntry
-          />
+
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TextInput
+              label="Password"
+              value={values.password}
+              onChangeText={handleChange("password")}
+              onBlur={handleBlur("password")}
+              style={[styles.input, { flex: 1 }]} // Flexível para ajustar junto com o ícone
+              secureTextEntry={!passwordVisible} // Alterna visibilidade
+            />
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)}
+              style={{ position: "absolute", right: 10 }}
+            >
+              <Icon
+                name={passwordVisible ? "eye-slash" : "eye"}
+                size={20}
+                color="gray"
+              />
+            </TouchableOpacity>
+          </View>
+
           {errors.password && touched.password ? (
             <Text style={styles.error}>{errors.password}</Text>
           ) : null}
+
           {loading && (
             <ProgressBar
               progress={0.5}

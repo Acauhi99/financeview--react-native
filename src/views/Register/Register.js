@@ -5,6 +5,7 @@ import { TouchableOpacity, View } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Button, ProgressBar, Text, TextInput } from "react-native-paper";
 import Toast from "react-native-toast-message";
+import Icon from "react-native-vector-icons/FontAwesome";
 import { UserContext } from "../../context/UserContext";
 import { AuthService } from "../../entities";
 import { RegisterSchema } from "../../validation";
@@ -15,6 +16,8 @@ const Register = () => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   const handleRegister = async (values) => {
     setLoading(true);
@@ -79,6 +82,7 @@ const Register = () => {
       }) => (
         <View style={styles.container}>
           <Text style={styles.title}>Register</Text>
+
           <TextInput
             label="First Name"
             value={values.firstName}
@@ -89,6 +93,7 @@ const Register = () => {
           {errors.firstName && touched.firstName ? (
             <Text style={styles.error}>{errors.firstName}</Text>
           ) : null}
+
           <TextInput
             label="Last Name"
             value={values.lastName}
@@ -99,6 +104,7 @@ const Register = () => {
           {errors.lastName && touched.lastName ? (
             <Text style={styles.error}>{errors.lastName}</Text>
           ) : null}
+
           <TextInput
             label="Email"
             value={values.email}
@@ -111,6 +117,7 @@ const Register = () => {
           {errors.email && touched.email ? (
             <Text style={styles.error}>{errors.email}</Text>
           ) : null}
+
           <TouchableOpacity onPress={showDatePicker} style={styles.input}>
             <TextInput
               label="Date of Birth"
@@ -125,34 +132,62 @@ const Register = () => {
           {errors.birthDate && touched.birthDate ? (
             <Text style={styles.error}>{errors.birthDate}</Text>
           ) : null}
+
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode="date"
             onConfirm={(date) => handleConfirm(date, setFieldValue)}
             onCancel={hideDatePicker}
           />
-          <TextInput
-            label="Password"
-            value={values.password}
-            onChangeText={handleChange("password")}
-            onBlur={handleBlur("password")}
-            style={styles.input}
-            secureTextEntry
-          />
+
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TextInput
+              label="Password"
+              value={values.password}
+              onChangeText={handleChange("password")}
+              onBlur={handleBlur("password")}
+              style={[styles.input, { flex: 1 }]}
+              secureTextEntry={!passwordVisible}
+            />
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)}
+              style={{ position: "absolute", right: 10 }}
+            >
+              <Icon
+                name={passwordVisible ? "eye-slash" : "eye"}
+                size={20}
+                color="gray"
+              />
+            </TouchableOpacity>
+          </View>
           {errors.password && touched.password ? (
             <Text style={styles.error}>{errors.password}</Text>
           ) : null}
-          <TextInput
-            label="Confirm Password"
-            value={values.confirmPassword}
-            onChangeText={handleChange("confirmPassword")}
-            onBlur={handleBlur("confirmPassword")}
-            style={styles.input}
-            secureTextEntry
-          />
+
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TextInput
+              label="Confirm Password"
+              value={values.confirmPassword}
+              onChangeText={handleChange("confirmPassword")}
+              onBlur={handleBlur("confirmPassword")}
+              style={[styles.input, { flex: 1 }]}
+              secureTextEntry={!confirmPasswordVisible}
+            />
+            <TouchableOpacity
+              onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+              style={{ position: "absolute", right: 10 }}
+            >
+              <Icon
+                name={confirmPasswordVisible ? "eye-slash" : "eye"}
+                size={20}
+                color="gray"
+              />
+            </TouchableOpacity>
+          </View>
           {errors.confirmPassword && touched.confirmPassword ? (
             <Text style={styles.error}>{errors.confirmPassword}</Text>
           ) : null}
+
           {loading && (
             <ProgressBar
               progress={0.5}
@@ -160,6 +195,7 @@ const Register = () => {
               style={styles.progressBar}
             />
           )}
+
           <Button mode="contained" onPress={handleSubmit} style={styles.button}>
             Register
           </Button>
