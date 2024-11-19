@@ -54,8 +54,8 @@ export default function AppNavigator() {
       ) : (
         <Stack.Navigator>
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          <Stack.Screen name="Portfolio" component={PortfolioScreen} />
-          <Stack.Screen name="Transactions" component={TransactionsScreen} />
+          {/* <Stack.Screen name="Portfolio" component={PortfolioScreen} /> */}
+          {/* <Stack.Screen name="Transactions" component={TransactionsScreen} /> */}
         </Stack.Navigator>
       )}
     </NavigationContainer>
