@@ -11,7 +11,6 @@ import {
 import { register } from "../services/auth";
 import * as yup from "yup";
 
-// Definição do esquema de validação com Yup
 const registerSchema = yup.object().shape({
   firstName: yup.string().required("Nome é obrigatório"),
   lastName: yup.string().required("Sobrenome é obrigatório"),
@@ -26,10 +25,12 @@ const registerSchema = yup.object().shape({
 });
 
 export default function RegisterScreen({ navigation }) {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [user, setUser] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
 
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
@@ -38,44 +39,50 @@ export default function RegisterScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const validateFields = async () => {
-    try {
-      await registerSchema.validate(
-        { firstName, lastName, email, password },
-        { abortEarly: false }
-      );
-      setErrors({});
-      return true;
-    } catch (validationErrors) {
-      const formattedErrors = {};
-      validationErrors.inner.forEach((error) => {
-        formattedErrors[error.path] = error.message;
+    return registerSchema
+      .validate(user, { abortEarly: false })
+      .then(() => {
+        setErrors({});
+        return true;
+      })
+      .catch((validationErrors) => {
+        const formattedErrors = {};
+        validationErrors.inner.forEach((error) => {
+          formattedErrors[error.path] = error.message;
+        });
+        setErrors(formattedErrors);
+        return false;
       });
-      setErrors(formattedErrors);
-      return false;
-    }
   };
 
-  const handleRegister = async () => {
+  const handleRegister = () => {
     setApiError("");
     setSuccessMessage("");
 
-    const isValid = await validateFields();
-    if (!isValid) {
-      return;
-    }
+    validateFields().then((isValid) => {
+      if (!isValid) {
+        return;
+      }
 
-    setIsLoading(true);
-    try {
-      const data = await register(firstName, lastName, email, password);
-      setSuccessMessage(data.message || "Registro bem-sucedido!");
-      setTimeout(() => {
-        navigation.navigate("Login");
-      }, 2000);
-    } catch (error) {
-      setApiError(error.message || "Erro ao registrar.");
-    } finally {
-      setIsLoading(false);
-    }
+      setIsLoading(true);
+      register(user.firstName, user.lastName, user.email, user.password)
+        .then((data) => {
+          setSuccessMessage(data.message || "Registro bem-sucedido!");
+          setTimeout(() => {
+            navigation.navigate("Login");
+          }, 500);
+        })
+        .catch((error) => {
+          setApiError(error.message || "Erro ao registrar.");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    });
+  };
+
+  const handleChange = (field, value) => {
+    setUser({ ...user, [field]: value });
   };
 
   return (
@@ -90,8 +97,8 @@ export default function RegisterScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Nome"
-        value={firstName}
-        onChangeText={setFirstName}
+        value={user.firstName}
+        onChangeText={(text) => handleChange("firstName", text)}
         autoCapitalize="words"
       />
       {errors.firstName ? (
@@ -101,8 +108,8 @@ export default function RegisterScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Sobrenome"
-        value={lastName}
-        onChangeText={setLastName}
+        value={user.lastName}
+        onChangeText={(text) => handleChange("lastName", text)}
         autoCapitalize="words"
       />
       {errors.lastName ? (
@@ -112,8 +119,8 @@ export default function RegisterScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
+        value={user.email}
+        onChangeText={(text) => handleChange("email", text)}
         keyboardType="email-address"
         autoCapitalize="none"
       />
@@ -122,8 +129,8 @@ export default function RegisterScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
+        value={user.password}
+        onChangeText={(text) => handleChange("password", text)}
         secureTextEntry
       />
       {errors.password ? (

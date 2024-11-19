@@ -21,69 +21,83 @@ const loginSchema = yup.object().shape({
 });
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
+  const [user, setUser] = useState({
+    email: "",
+    password: "",
+  });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
 
   const validateFields = async () => {
-    try {
-      await loginSchema.validate({ email, password }, { abortEarly: false });
-      setErrors({});
-      return true;
-    } catch (validationErrors) {
-      const formattedErrors = {};
-      validationErrors.inner.forEach((error) => {
-        formattedErrors[error.path] = error.message;
+    return loginSchema
+      .validate(user, { abortEarly: false })
+      .then(() => {
+        setErrors({});
+        return true;
+      })
+      .catch((validationErrors) => {
+        const formattedErrors = {};
+        validationErrors.inner.forEach((error) => {
+          formattedErrors[error.path] = error.message;
+        });
+        setErrors(formattedErrors);
+        return false;
       });
-      setErrors(formattedErrors);
-      return false;
-    }
   };
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     setApiError("");
 
-    const isValid = await validateFields();
-    if (!isValid) {
-      return;
-    }
+    validateFields().then((isValid) => {
+      if (!isValid) {
+        return;
+      }
 
-    setIsLoading(true);
-    try {
-      const data = await login(email, password);
-      const token = data.token;
-      await AsyncStorage.setItem("token", token);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Dashboard" }],
-      });
-    } catch (error) {
-      setApiError(error.message || "Erro ao fazer login.");
-    } finally {
-      setIsLoading(false);
-    }
+      setIsLoading(true);
+      login(user.email, user.password)
+        .then((data) => {
+          const token = data.token;
+          AsyncStorage.setItem("token", token).then(() => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Dashboard" }],
+            });
+          });
+        })
+        .catch((error) => {
+          setApiError(error.message || "Erro ao fazer login.");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    });
   };
 
-  const handleGithubLogin = async () => {
+  const handleGithubLogin = () => {
     setApiError("");
     setIsLoading(true);
-    try {
-      const data = await githubLogin();
-      const token = data.token;
-      await AsyncStorage.setItem("token", token);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Dashboard" }],
+
+    githubLogin()
+      .then((data) => {
+        const token = data.token;
+        AsyncStorage.setItem("token", token).then(() => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }],
+          });
+        });
+      })
+      .catch((error) => {
+        setApiError(error.message || "Erro ao fazer login com GitHub.");
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-    } catch (error) {
-      setApiError(error.message || "Erro ao fazer login com GitHub.");
-    } finally {
-      setIsLoading(false);
-    }
+  };
+
+  const handleChange = (field, value) => {
+    setUser({ ...user, [field]: value });
   };
 
   return (
@@ -95,8 +109,8 @@ export default function LoginScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
+        value={user.email}
+        onChangeText={(text) => handleChange("email", text)}
         keyboardType="email-address"
         autoCapitalize="none"
       />
@@ -105,8 +119,8 @@ export default function LoginScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
+        value={user.password}
+        onChangeText={(text) => handleChange("password", text)}
         secureTextEntry
       />
       {errors.password ? (
