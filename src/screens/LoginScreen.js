@@ -8,8 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { login, githubLogin } from "../services/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../utils/authContext";
 import * as yup from "yup";
 
 const loginSchema = yup.object().shape({
@@ -21,6 +20,7 @@ const loginSchema = yup.object().shape({
 });
 
 export default function LoginScreen({ navigation }) {
+  const { login } = useAuth();
   const [user, setUser] = useState({
     email: "",
     password: "",
@@ -56,15 +56,6 @@ export default function LoginScreen({ navigation }) {
 
       setIsLoading(true);
       login(user.email, user.password)
-        .then((data) => {
-          const token = data.token;
-          AsyncStorage.setItem("token", token).then(() => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Dashboard" }],
-            });
-          });
-        })
         .catch((error) => {
           setApiError(error.message || "Erro ao fazer login.");
         })
@@ -72,28 +63,6 @@ export default function LoginScreen({ navigation }) {
           setIsLoading(false);
         });
     });
-  };
-
-  const handleGithubLogin = () => {
-    setApiError("");
-    setIsLoading(true);
-
-    githubLogin()
-      .then((data) => {
-        const token = data.token;
-        AsyncStorage.setItem("token", token).then(() => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Dashboard" }],
-          });
-        });
-      })
-      .catch((error) => {
-        setApiError(error.message || "Erro ao fazer login com GitHub.");
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
   };
 
   const handleChange = (field, value) => {
@@ -132,13 +101,6 @@ export default function LoginScreen({ navigation }) {
       ) : (
         <>
           <Button title="Entrar" onPress={handleLogin} />
-
-          <TouchableOpacity
-            style={styles.githubButton}
-            onPress={handleGithubLogin}
-          >
-            <Text style={styles.githubButtonText}>Entrar com GitHub</Text>
-          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.registerLink}
@@ -184,17 +146,6 @@ const styles = StyleSheet.create({
     color: "red",
     marginBottom: 20,
     textAlign: "center",
-  },
-  githubButton: {
-    backgroundColor: "#24292e",
-    padding: 15,
-    borderRadius: 8,
-    marginTop: 10,
-    alignItems: "center",
-  },
-  githubButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
   },
   registerLink: {
     marginTop: 20,

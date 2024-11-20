@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthContext } from "../utils/authContext";
 
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
@@ -14,23 +13,7 @@ import TransactionsScreen from "../screens/TransactionsScreen";
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [userToken, setUserToken] = useState(null);
-
-  useEffect(() => {
-    const checkToken = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        setUserToken(token);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkToken();
-  }, []);
+  const { token, isLoading } = useContext(AuthContext);
 
   if (isLoading) {
     return (
@@ -42,7 +25,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      {userToken === null ? (
+      {token === null ? (
         <Stack.Navigator>
           <Stack.Screen
             name="Login"
@@ -54,8 +37,8 @@ export default function AppNavigator() {
       ) : (
         <Stack.Navigator>
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          {/* <Stack.Screen name="Portfolio" component={PortfolioScreen} /> */}
-          {/* <Stack.Screen name="Transactions" component={TransactionsScreen} /> */}
+          {/* <Stack.Screen name="Portfolio" component={PortfolioScreen} />
+          <Stack.Screen name="Transactions" component={TransactionsScreen} /> */}
         </Stack.Navigator>
       )}
     </NavigationContainer>
