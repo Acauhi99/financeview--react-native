@@ -1,5 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useState, useContext } from "react";
 import axios from "axios";
 import { login as loginService } from "../services/auth";
 
@@ -11,33 +10,13 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadToken = async () => {
-      try {
-        const storedToken = await AsyncStorage.getItem("token");
-        if (storedToken) {
-          setToken(storedToken);
-          axios.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${storedToken}`;
-        }
-      } catch (error) {
-        console.error("Erro ao carregar token:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadToken();
-  }, []);
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = async (email, password) => {
     try {
+      setIsLoading(true);
       const data = await loginService(email, password);
       if (data.token) {
-        await AsyncStorage.setItem("token", data.token);
         setToken(data.token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
       } else {
@@ -46,17 +25,14 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Erro no login:", error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      setToken(null);
-      delete axios.defaults.headers.common["Authorization"];
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
-    }
+  const logout = () => {
+    setToken(null);
+    delete axios.defaults.headers.common["Authorization"];
   };
 
   return (
