@@ -2,47 +2,20 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   FlatList,
 } from "react-native";
 import { getStockDetails, getAvailableStocks } from "../services/stock";
 import { SafeAreaView } from "react-native-safe-area-context";
+import SearchBar from "../components/SearchBar";
 
 export default function DashboardScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedStock, setSelectedStock] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
-  const [availableStocks, setAvailableStocks] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
 
-  const fetchAvailableStocks = async () => {
-    try {
-      const response = await getAvailableStocks();
-      if (response && response.stocks) {
-        setAvailableStocks(response.stocks);
-      }
-    } catch (error) {
-      setApiError("Erro ao carregar ações disponíveis");
-    }
-  };
-
-  const filteredStocks = availableStocks.filter((stock) =>
-    stock.symbol.includes(searchQuery.toUpperCase())
-  );
-
-  const handleStockSelect = async (symbol) => {
-    setSearchQuery(symbol);
-    setShowDropdown(false);
-    await handleSearch(symbol);
-  };
-
-  const handleSearch = async (query = searchQuery) => {
-    const stockQuery = query.trim().toUpperCase();
-
+  const handleSearch = async (stockQuery) => {
     if (!stockQuery) {
       setApiError("Digite um ativo para buscar");
       return;
@@ -67,61 +40,6 @@ export default function DashboardScreen() {
       setIsLoading(false);
     }
   };
-
-  const renderSearchSection = () => (
-    <View style={styles.searchSection}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar ativo (ex: PETR4)"
-          value={searchQuery}
-          onChangeText={(text) => {
-            setSearchQuery(text);
-            setShowDropdown(true);
-          }}
-          onFocus={() => {
-            setShowDropdown(true);
-            fetchAvailableStocks();
-          }}
-          autoCapitalize="characters"
-          autoCorrect={false}
-        />
-        <TouchableOpacity
-          style={[
-            styles.searchButton,
-            (!searchQuery.trim() || isLoading) && styles.searchButtonDisabled,
-          ]}
-          onPress={() => handleSearch()}
-          disabled={isLoading || !searchQuery.trim()}
-        >
-          <Text style={styles.searchButtonText}>
-            {isLoading ? "Buscando..." : "Buscar"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {showDropdown && (
-        <View style={styles.dropdownContainer}>
-          <FlatList
-            data={filteredStocks}
-            keyExtractor={(item) => item.symbol}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.dropdownItem}
-                onPress={() => handleStockSelect(item.symbol)}
-              >
-                <Text style={styles.dropdownSymbol}>{item.symbol}</Text>
-                <Text style={styles.dropdownName}>{item.shortName}</Text>
-              </TouchableOpacity>
-            )}
-            style={styles.dropdown}
-            nestedScrollEnabled={true}
-            maxHeight={200}
-          />
-        </View>
-      )}
-    </View>
-  );
 
   const renderStockDetails = () => {
     if (!selectedStock) return null;
@@ -179,8 +97,7 @@ export default function DashboardScreen() {
                   Data de Pagamento:{" "}
                   {new Date(item.paymentDate).toLocaleDateString()}
                 </Text>
-                <Text>Taxa: R$ {item.rate?.toFixed(2)}</Text>
-                <Text>Tipo: {item.type}</Text>
+                <Text>Valor: R$ {item.rate?.toFixed(2)}</Text>
                 <Text>Referente a: {item.relatedTo}</Text>
               </View>
             ))}
@@ -193,8 +110,12 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.title}>Dashboard</Text>
-        {renderSearchSection()}
+        <Text style={styles.title}>Buscador de Ativos</Text>
+        <SearchBar
+          onSelectStock={handleSearch}
+          isLoading={isLoading}
+          fetchAvailableStocks={getAvailableStocks}
+        />
         {isLoading && (
           <ActivityIndicator
             style={styles.loader}
@@ -224,68 +145,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
     fontWeight: "bold",
-  },
-  searchSection: {
-    zIndex: 1,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    marginBottom: 10,
-    gap: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 50,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-  },
-  searchButton: {
-    backgroundColor: "#007AFF",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10,
-    borderRadius: 8,
-    height: 50,
-    width: 100,
-  },
-  searchButtonDisabled: {
-    backgroundColor: "#ccc",
-  },
-  searchButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  dropdownContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    maxHeight: 200,
-    marginBottom: 10,
-  },
-  dropdown: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-  },
-  dropdownItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  dropdownSymbol: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  dropdownName: {
-    fontSize: 14,
-    color: "#666",
   },
   loader: {
     marginVertical: 20,
