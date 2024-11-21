@@ -26,7 +26,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       {token === null ? (
-        <Stack.Navigator>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen
             name="Login"
             component={LoginScreen}
@@ -35,7 +35,7 @@ export default function AppNavigator() {
           <Stack.Screen name="Register" component={RegisterScreen} />
         </Stack.Navigator>
       ) : (
-        <Stack.Navigator>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           {/* <Stack.Screen name="Portfolio" component={PortfolioScreen} />
           <Stack.Screen name="Transactions" component={TransactionsScreen} /> */}
