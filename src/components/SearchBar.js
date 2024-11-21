@@ -81,7 +81,6 @@ export default function SearchBar({
                 onPress={() => handleStockSelect(item.symbol)}
               >
                 <Text style={styles.dropdownSymbol}>{item.symbol}</Text>
-                <Text style={styles.dropdownName}>{item.shortName}</Text>
               </TouchableOpacity>
             )}
             style={styles.dropdown}
