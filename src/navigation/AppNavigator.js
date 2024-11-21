@@ -6,9 +6,7 @@ import { AuthContext } from "../utils/authContext";
 
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
-import DashboardScreen from "../screens/DashboardScreen";
-import PortfolioScreen from "../screens/PortfolioScreen";
-import TransactionsScreen from "../screens/TransactionsScreen";
+import AuthenticatedNavigator from "./AuthenticatedNavigator";
 
 const Stack = createNativeStackNavigator();
 
@@ -35,11 +33,7 @@ export default function AppNavigator() {
           <Stack.Screen name="Register" component={RegisterScreen} />
         </Stack.Navigator>
       ) : (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          {/* <Stack.Screen name="Portfolio" component={PortfolioScreen} />
-          <Stack.Screen name="Transactions" component={TransactionsScreen} /> */}
-        </Stack.Navigator>
+        <AuthenticatedNavigator />
       )}
     </NavigationContainer>
   );
