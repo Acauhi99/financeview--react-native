@@ -6,20 +6,44 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  ScrollView,
+  FlatList,
 } from "react-native";
-import { getStockDetails } from "../services/stock";
+import { getStockDetails, getAvailableStocks } from "../services/stock";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DashboardScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStock, setSelectedStock] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+  const [availableStocks, setAvailableStocks] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const handleSearch = async () => {
-    const query = searchQuery.trim().toUpperCase();
+  const fetchAvailableStocks = async () => {
+    try {
+      const response = await getAvailableStocks();
+      if (response && response.stocks) {
+        setAvailableStocks(response.stocks);
+      }
+    } catch (error) {
+      setApiError("Erro ao carregar ações disponíveis");
+    }
+  };
 
-    if (!query) {
+  const filteredStocks = availableStocks.filter((stock) =>
+    stock.symbol.includes(searchQuery.toUpperCase())
+  );
+
+  const handleStockSelect = async (symbol) => {
+    setSearchQuery(symbol);
+    setShowDropdown(false);
+    await handleSearch(symbol);
+  };
+
+  const handleSearch = async (query = searchQuery) => {
+    const stockQuery = query.trim().toUpperCase();
+
+    if (!stockQuery) {
       setApiError("Digite um ativo para buscar");
       return;
     }
@@ -29,12 +53,12 @@ export default function DashboardScreen() {
     setSelectedStock(null);
 
     try {
-      const details = await getStockDetails(query);
+      const details = await getStockDetails(stockQuery);
       if (details) {
         setSelectedStock(details);
         setApiError("");
       } else {
-        setApiError("Nenhum dado encontrado para " + query);
+        setApiError("Nenhum dado encontrado para " + stockQuery);
       }
     } catch (error) {
       setApiError(error.message);
@@ -44,16 +68,21 @@ export default function DashboardScreen() {
     }
   };
 
-  return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Dashboard</Text>
-
+  const renderSearchSection = () => (
+    <View style={styles.searchSection}>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar ativo (ex: PETR4)"
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+            setShowDropdown(true);
+          }}
+          onFocus={() => {
+            setShowDropdown(true);
+            fetchAvailableStocks();
+          }}
           autoCapitalize="characters"
           autoCorrect={false}
         />
@@ -62,7 +91,7 @@ export default function DashboardScreen() {
             styles.searchButton,
             (!searchQuery.trim() || isLoading) && styles.searchButtonDisabled,
           ]}
-          onPress={handleSearch}
+          onPress={() => handleSearch()}
           disabled={isLoading || !searchQuery.trim()}
         >
           <Text style={styles.searchButtonText}>
@@ -71,74 +100,120 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {isLoading && (
-        <ActivityIndicator style={styles.loader} size="large" color="#007AFF" />
-      )}
-
-      {apiError ? <Text style={styles.errorText}>{apiError}</Text> : null}
-
-      {selectedStock && (
-        <View style={styles.detailsContainer}>
-          <View style={styles.headerInfo}>
-            <Text style={styles.stockSymbol}>{selectedStock.symbol}</Text>
-            <Text style={styles.stockName}>{selectedStock.shortName}</Text>
-            <Text style={styles.currentPrice}>
-              Preço Atual: R$ {selectedStock.currentPrice?.toFixed(2)}
-            </Text>
-            <Text
-              style={[
-                styles.priceChange,
-                {
-                  color:
-                    selectedStock.priceChangePercent >= 0
-                      ? "#00cc00"
-                      : "#ff0000",
-                },
-              ]}
-            >
-              Variação: {selectedStock.priceChangePercent?.toFixed(2)}%
-            </Text>
-          </View>
-
-          <Text style={styles.sectionTitle}>Dados Históricos</Text>
-          {selectedStock.historicalData?.map((item, index) => (
-            <View
-              key={`historical-${item.date}-${index}`}
-              style={styles.historicalItem}
-            >
-              <Text style={styles.itemTitle}>
-                Data: {new Date(item.date).toLocaleDateString()}
-              </Text>
-              <Text>Abertura: R$ {item.open?.toFixed(2)}</Text>
-              <Text>Máxima: R$ {item.high?.toFixed(2)}</Text>
-              <Text>Mínima: R$ {item.low?.toFixed(2)}</Text>
-              <Text>Fechamento: R$ {item.close?.toFixed(2)}</Text>
-              <Text>Volume: {item.volume?.toLocaleString()}</Text>
-            </View>
-          ))}
-
-          <Text style={styles.sectionTitle}>Dividendos</Text>
-          {selectedStock.dividends?.map((item, index) => (
-            <View
-              key={`dividend-${item.paymentDate}-${index}`}
-              style={styles.dividendItem}
-            >
-              <Text style={styles.itemTitle}>
-                Data de Pagamento:{" "}
-                {new Date(item.paymentDate).toLocaleDateString()}
-              </Text>
-              <Text>Taxa: R$ {item.rate?.toFixed(2)}</Text>
-              <Text>Tipo: {item.type}</Text>
-              <Text>Referente a: {item.relatedTo}</Text>
-            </View>
-          ))}
+      {showDropdown && (
+        <View style={styles.dropdownContainer}>
+          <FlatList
+            data={filteredStocks}
+            keyExtractor={(item) => item.symbol}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.dropdownItem}
+                onPress={() => handleStockSelect(item.symbol)}
+              >
+                <Text style={styles.dropdownSymbol}>{item.symbol}</Text>
+                <Text style={styles.dropdownName}>{item.shortName}</Text>
+              </TouchableOpacity>
+            )}
+            style={styles.dropdown}
+            nestedScrollEnabled={true}
+            maxHeight={200}
+          />
         </View>
       )}
-    </ScrollView>
+    </View>
+  );
+
+  const renderStockDetails = () => {
+    if (!selectedStock) return null;
+
+    return (
+      <FlatList
+        ListHeaderComponent={() => (
+          <View style={styles.detailsContainer}>
+            <View style={styles.headerInfo}>
+              <Text style={styles.stockSymbol}>{selectedStock.symbol}</Text>
+              <Text style={styles.stockName}>{selectedStock.shortName}</Text>
+              <Text style={styles.currentPrice}>
+                Preço Atual: R$ {selectedStock.currentPrice?.toFixed(2)}
+              </Text>
+              <Text
+                style={[
+                  styles.priceChange,
+                  {
+                    color:
+                      selectedStock.priceChangePercent >= 0
+                        ? "#00cc00"
+                        : "#ff0000",
+                  },
+                ]}
+              >
+                Variação: {selectedStock.priceChangePercent?.toFixed(2)}%
+              </Text>
+            </View>
+
+            <Text style={styles.sectionTitle}>Dados Históricos</Text>
+          </View>
+        )}
+        data={selectedStock.historicalData}
+        renderItem={({ item }) => (
+          <View style={styles.historicalItem}>
+            <Text style={styles.itemTitle}>
+              Data: {new Date(item.date).toLocaleDateString()}
+            </Text>
+            <Text>Abertura: R$ {item.open?.toFixed(2)}</Text>
+            <Text>Máxima: R$ {item.high?.toFixed(2)}</Text>
+            <Text>Mínima: R$ {item.low?.toFixed(2)}</Text>
+            <Text>Fechamento: R$ {item.close?.toFixed(2)}</Text>
+            <Text>Volume: {item.volume?.toLocaleString()}</Text>
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <View>
+            <Text style={styles.sectionTitle}>Dividendos</Text>
+            {selectedStock.dividends?.map((item, index) => (
+              <View
+                key={`dividend-${item.paymentDate}-${index}`}
+                style={styles.dividendItem}
+              >
+                <Text style={styles.itemTitle}>
+                  Data de Pagamento:{" "}
+                  {new Date(item.paymentDate).toLocaleDateString()}
+                </Text>
+                <Text>Taxa: R$ {item.rate?.toFixed(2)}</Text>
+                <Text>Tipo: {item.type}</Text>
+                <Text>Referente a: {item.relatedTo}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      />
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Dashboard</Text>
+        {renderSearchSection()}
+        {isLoading && (
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color="#007AFF"
+          />
+        )}
+        {apiError ? <Text style={styles.errorText}>{apiError}</Text> : null}
+        {renderStockDetails()}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
   container: {
     flex: 1,
     padding: 20,
@@ -149,6 +224,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
     fontWeight: "bold",
+  },
+  searchSection: {
+    zIndex: 1,
   },
   searchContainer: {
     flexDirection: "row",
@@ -180,32 +258,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  dropdownContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    maxHeight: 200,
+    marginBottom: 10,
+  },
+  dropdown: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+  },
+  dropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  dropdownSymbol: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  dropdownName: {
+    fontSize: 14,
+    color: "#666",
+  },
   loader: {
     marginVertical: 20,
   },
-  noResults: {
+  errorText: {
+    color: "red",
     textAlign: "center",
-    marginTop: 20,
-    color: "#666",
-  },
-  stockItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 15,
-    borderBottomColor: "#eee",
-    borderBottomWidth: 1,
-    backgroundColor: "#f8f8f8",
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  stockText: {
-    fontSize: 18,
-    fontWeight: "500",
-  },
-  stockPrice: {
-    fontSize: 18,
-    color: "#00cc00",
-    fontWeight: "500",
+    marginVertical: 10,
+    fontSize: 16,
   },
   detailsContainer: {
     marginTop: 20,
@@ -259,11 +348,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 5,
-  },
-  errorText: {
-    color: "red",
-    textAlign: "center",
-    marginVertical: 10,
-    fontSize: 16,
   },
 });
