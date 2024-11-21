@@ -17,6 +17,8 @@ import {
 } from "../services/portfolio";
 import { depositFunds, withdrawFunds } from "../services/transaction";
 import TransactionModal from "../components/TransactionModal";
+import PerformanceCard from "../components/PerformanceCard";
+import PositionCard from "../components/PositionCard";
 
 export default function PortfolioScreen() {
   const { token } = useAuth();
@@ -28,47 +30,32 @@ export default function PortfolioScreen() {
   const [positions, setPositions] = useState([]);
   const [performance, setPerformance] = useState(null);
 
-  const fetchPortfolio = async () => {
+  const fetchData = async () => {
     try {
-      const data = await getPortfolio(token);
-      setPortfolio(data);
+      setIsLoading(true);
+      const portfolioData = await getPortfolio(token);
+      setPortfolio(portfolioData);
+
+      if (portfolioData) {
+        const [positionsData, performanceData] = await Promise.all([
+          getPositions(token),
+          getPerformance(token),
+        ]);
+        setPositions(positionsData);
+        setPerformance(performanceData);
+      }
     } catch (err) {
       if (err.message !== "Portfolio not found") {
-        setError(err.message || "Erro ao buscar portfolio");
+        setError(err.message || "Erro ao buscar dados");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchPositions = async () => {
-    try {
-      const data = await getPositions(token);
-      setPositions(data);
-    } catch (err) {
-      console.error("Error fetching positions:", err);
-    }
-  };
-
-  const fetchPerformance = async () => {
-    try {
-      const data = await getPerformance(token);
-      setPerformance(data);
-    } catch (err) {
-      console.error("Error fetching performance:", err);
-    }
-  };
-
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchPortfolio();
-      if (portfolio) {
-        await Promise.all([fetchPositions(), fetchPerformance()]);
-      }
-      setIsLoading(false);
-    };
     fetchData();
-  }, []);
+  }, [token]);
 
   const handleCreatePortfolio = async () => {
     try {
@@ -76,6 +63,7 @@ export default function PortfolioScreen() {
       setError(null);
       const newPortfolio = await createPortfolio(token);
       setPortfolio(newPortfolio);
+      await fetchData();
     } catch (err) {
       setError(err.message || "Erro ao criar portfolio");
     } finally {
@@ -94,15 +82,7 @@ export default function PortfolioScreen() {
         await withdrawFunds(amount, portfolio.id, token);
       }
 
-      // Refresh all data
-      const [portfolioData, positionsData, performanceData] = await Promise.all(
-        [getPortfolio(token), getPositions(token), getPerformance(token)]
-      );
-
-      setPortfolio(portfolioData);
-      setPositions(positionsData);
-      setPerformance(performanceData);
-
+      await fetchData();
       setModalVisible(false);
       Alert.alert("Sucesso", "Transação realizada com sucesso!");
     } catch (err) {
@@ -156,85 +136,8 @@ export default function PortfolioScreen() {
               </View>
             </View>
 
-            <View style={styles.performanceCard}>
-              <Text style={styles.sectionTitle}>Performance</Text>
-              {performance && (
-                <View style={styles.performanceGrid}>
-                  <View style={styles.performanceItem}>
-                    <Text style={styles.performanceLabel}>Total Investido</Text>
-                    <Text style={styles.performanceValue}>
-                      R$ {parseFloat(performance.totalInvested).toFixed(2)}
-                    </Text>
-                  </View>
-                  <View style={styles.performanceItem}>
-                    <Text style={styles.performanceLabel}>Ganhos</Text>
-                    <Text
-                      style={[
-                        styles.performanceValue,
-                        {
-                          color:
-                            parseFloat(performance.totalGains) >= 0
-                              ? "#4CAF50"
-                              : "#F44336",
-                        },
-                      ]}
-                    >
-                      R$ {parseFloat(performance.totalGains).toFixed(2)}
-                    </Text>
-                  </View>
-                  <View style={styles.performanceItem}>
-                    <Text style={styles.performanceLabel}>Dividendos</Text>
-                    <Text style={styles.performanceValue}>
-                      R$ {parseFloat(performance.totalDividends).toFixed(2)}
-                    </Text>
-                  </View>
-                  <View style={styles.performanceItem}>
-                    <Text style={styles.performanceLabel}>Rentabilidade</Text>
-                    <Text
-                      style={[
-                        styles.performanceValue,
-                        {
-                          color:
-                            parseFloat(performance.profitability) >= 0
-                              ? "#4CAF50"
-                              : "#F44336",
-                        },
-                      ]}
-                    >
-                      {performance.profitability}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </View>
-
-            <View style={styles.positionsCard}>
-              <Text style={styles.sectionTitle}>Posições</Text>
-              {positions.length > 0 ? (
-                positions.map((position, index) => (
-                  <View key={index} style={styles.positionItem}>
-                    <View style={styles.positionHeader}>
-                      <Text style={styles.tickerText}>{position.ticker}</Text>
-                      <Text style={styles.quantityText}>
-                        {position.quantity} ações
-                      </Text>
-                    </View>
-                    <View style={styles.positionDetails}>
-                      <Text style={styles.priceText}>
-                        Preço atual: R$ {position.currentPrice.toFixed(2)}
-                      </Text>
-                      <Text style={styles.totalText}>
-                        Total: R$ {position.totalValue.toFixed(2)}
-                      </Text>
-                    </View>
-                  </View>
-                ))
-              ) : (
-                <Text style={styles.emptyMessage}>
-                  Nenhuma posição encontrada
-                </Text>
-              )}
-            </View>
+            <PerformanceCard performance={performance} />
+            <PositionCard positions={positions} />
           </>
         ) : (
           <>
@@ -280,11 +183,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "center",
     marginTop: 32,
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    paddingTop: 32,
   },
   portfolioCard: {
     backgroundColor: "#fff",
@@ -349,89 +247,5 @@ const styles = StyleSheet.create({
   scrollContent: {
     alignItems: "center",
     paddingVertical: 32,
-  },
-  performanceCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    width: "90%",
-    marginTop: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  performanceGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  performanceItem: {
-    width: "48%",
-    marginBottom: 16,
-  },
-  performanceLabel: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 4,
-  },
-  performanceValue: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  positionsCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    width: "90%",
-    marginTop: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  positionItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    paddingVertical: 12,
-  },
-  positionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  tickerText: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  quantityText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  positionDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  priceText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  totalText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  emptyMessage: {
-    textAlign: "center",
-    color: "#666",
-    marginTop: 8,
   },
 });
