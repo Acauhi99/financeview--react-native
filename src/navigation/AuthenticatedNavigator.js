@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useContext } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { View } from "react-native";
+import { AuthContext } from "../utils/authContext";
 
 import DashboardScreen from "../screens/DashboardScreen";
 import PortfolioScreen from "../screens/PortfolioScreen";
@@ -8,7 +10,11 @@ import TransactionsScreen from "../screens/TransactionsScreen";
 
 const Tab = createBottomTabNavigator();
 
+const LogoutScreen = () => <View />;
+
 export default function AuthenticatedNavigator() {
+  const { logout } = useContext(AuthContext);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -22,6 +28,8 @@ export default function AuthenticatedNavigator() {
             iconName = focused ? "pie-chart" : "pie-chart-outline";
           } else if (route.name === "Transactions") {
             iconName = focused ? "list" : "list-outline";
+          } else if (route.name === "Logout") {
+            iconName = "log-out-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -33,6 +41,16 @@ export default function AuthenticatedNavigator() {
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Portfolio" component={PortfolioScreen} />
       <Tab.Screen name="Transactions" component={TransactionsScreen} />
+      <Tab.Screen
+        name="Logout"
+        component={LogoutScreen}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            logout();
+          },
+        }}
+      />
     </Tab.Navigator>
   );
 }
