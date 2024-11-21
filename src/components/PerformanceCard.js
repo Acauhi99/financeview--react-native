@@ -48,7 +48,9 @@ const PerformanceCard = ({ performance }) => {
                 },
               ]}
             >
-              {performance.profitability}
+              {isNaN(parseFloat(performance.profitability))
+                ? "0.00%"
+                : `${parseFloat(performance.profitability).toFixed(2)}%`}
             </Text>
           </View>
         </View>
