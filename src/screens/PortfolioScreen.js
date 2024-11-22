@@ -113,7 +113,7 @@ export default function PortfolioScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Meu Portfólio</Text>
+      <Text style={styles.title}>Meu Portifólio</Text>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -149,7 +149,7 @@ export default function PortfolioScreen() {
             <View style={styles.emptyStateCard}>
               <Text style={styles.emptyStateTitle}>Bem-vindo!</Text>
               <Text style={styles.emptyStateMessage}>
-                Você ainda não possui um portfólio.{"\n"}
+                Você ainda não possui um portifólio.{"\n"}
                 Crie agora para começar a investir!
               </Text>
               <TouchableOpacity
@@ -158,7 +158,7 @@ export default function PortfolioScreen() {
                 disabled={isLoading}
               >
                 <Text style={styles.createPortfolioButtonText}>
-                  Criar Meu Primeiro Portfólio
+                  Criar Meu Portifólio
                 </Text>
               </TouchableOpacity>
             </View>
