@@ -12,8 +12,13 @@ import {
 import { AuthContext } from "../utils/authContext";
 import SearchBar from "../components/SearchBar";
 import NegociationModal from "../components/NegociationModal";
+import TransactionHistoryList from "../components/TransactionHistoryList";
 import { getStockDetails, getAvailableStocks } from "../services/stock";
-import { buyStock, sellStock } from "../services/transaction";
+import {
+  buyStock,
+  sellStock,
+  getTransactionHistory,
+} from "../services/transaction";
 import { getPortfolio } from "../services/portfolio";
 import { useScreenFocus } from "../utils/useScreenFocus";
 
@@ -23,10 +28,21 @@ export default function TransactionsScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [portfolio, setPortfolio] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [transactions, setTransactions] = useState([]);
 
   useScreenFocus(() => {
     fetchPortfolio();
+    fetchTransactions();
   }, [token]);
+
+  const fetchTransactions = async () => {
+    try {
+      const data = await getTransactionHistory(token);
+      setTransactions(data);
+    } catch (error) {
+      Alert.alert("Erro", "Erro ao carregar histórico de transações");
+    }
+  };
 
   const fetchPortfolio = async () => {
     try {
@@ -39,6 +55,7 @@ export default function TransactionsScreen() {
 
   useEffect(() => {
     fetchPortfolio();
+    fetchTransactions();
   }, []);
 
   const handleStockSelect = async (ticker) => {
@@ -51,6 +68,13 @@ export default function TransactionsScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTransactionSuccess = () => {
+    setModalVisible(false);
+    setSelectedStock(null);
+    fetchPortfolio();
+    fetchTransactions();
   };
 
   const handleBuy = async (quantity) => {
@@ -80,16 +104,7 @@ export default function TransactionsScreen() {
         `Compra de ${quantity} ações de ${
           selectedStock.symbol
         } realizada com sucesso por R$ ${totalAmount.toFixed(2)}`,
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              setModalVisible(false);
-              setSelectedStock(null);
-              fetchPortfolio();
-            },
-          },
-        ]
+        [{ text: "OK", onPress: handleTransactionSuccess }]
       );
     } catch (error) {
       Alert.alert(
@@ -123,16 +138,7 @@ export default function TransactionsScreen() {
         `Venda de ${quantity} ações de ${
           selectedStock.symbol
         } realizada com sucesso por R$ ${totalAmount.toFixed(2)}`,
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              setModalVisible(false);
-              setSelectedStock(null);
-              fetchPortfolio();
-            },
-          },
-        ]
+        [{ text: "OK", onPress: handleTransactionSuccess }]
       );
     } catch (error) {
       Alert.alert(
@@ -185,6 +191,10 @@ export default function TransactionsScreen() {
               </TouchableOpacity>
             </View>
           )}
+
+          <View style={styles.transactionListContainer}>
+            <TransactionHistoryList transactions={transactions} />
+          </View>
         </View>
 
         <NegociationModal
@@ -256,6 +266,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     marginTop: 8,
+    marginBottom: 16,
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -283,5 +294,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  transactionListContainer: {
+    flex: 1,
   },
 });
