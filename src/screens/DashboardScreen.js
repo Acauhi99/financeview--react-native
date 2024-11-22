@@ -9,11 +9,17 @@ import {
 import { getStockDetails, getAvailableStocks } from "../services/stock";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SearchBar from "../components/SearchBar";
+import { useScreenFocus } from "../utils/useScreenFocus";
 
 export default function DashboardScreen() {
   const [selectedStock, setSelectedStock] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+
+  useScreenFocus(() => {
+    setSelectedStock(null);
+    setApiError("");
+  }, []);
 
   const handleSearch = async (stockQuery) => {
     if (!stockQuery) {

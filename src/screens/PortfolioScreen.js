@@ -19,6 +19,7 @@ import { depositFunds, withdrawFunds } from "../services/transaction";
 import TransactionModal from "../components/TransactionModal";
 import PerformanceCard from "../components/PerformanceCard";
 import PositionCard from "../components/PositionCard";
+import { useScreenFocus } from "../utils/useScreenFocus";
 
 export default function PortfolioScreen() {
   const { token } = useAuth();
@@ -29,6 +30,10 @@ export default function PortfolioScreen() {
   const [transactionType, setTransactionType] = useState(null);
   const [positions, setPositions] = useState([]);
   const [performance, setPerformance] = useState(null);
+
+  useScreenFocus(() => {
+    fetchData();
+  }, [token]);
 
   const fetchData = async () => {
     try {
