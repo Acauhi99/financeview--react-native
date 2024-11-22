@@ -30,39 +30,33 @@ export default function LoginScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const validateFields = async () => {
-    return loginSchema
-      .validate(user, { abortEarly: false })
-      .then(() => {
-        setErrors({});
-        return true;
-      })
-      .catch((validationErrors) => {
-        const formattedErrors = {};
-        validationErrors.inner.forEach((error) => {
-          formattedErrors[error.path] = error.message;
-        });
-        setErrors(formattedErrors);
-        return false;
+    try {
+      await loginSchema.validate(user, { abortEarly: false });
+      setErrors({});
+      return true;
+    } catch (validationErrors) {
+      const formattedErrors = {};
+      validationErrors.inner.forEach((error) => {
+        formattedErrors[error.path] = error.message;
       });
+      setErrors(formattedErrors);
+      return false;
+    }
   };
 
-  const handleLogin = () => {
-    setApiError("");
-
-    validateFields().then((isValid) => {
-      if (!isValid) {
-        return;
-      }
+  const handleLogin = async () => {
+    try {
+      setApiError("");
+      const isValid = await validateFields();
+      if (!isValid) return;
 
       setIsLoading(true);
-      login(user.email, user.password)
-        .catch((error) => {
-          setApiError(error.message || "Erro ao fazer login.");
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    });
+      await login(user.email, user.password);
+    } catch (error) {
+      setApiError(error.message || "Erro ao fazer login");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (field, value) => {

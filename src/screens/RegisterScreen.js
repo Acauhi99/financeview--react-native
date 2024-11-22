@@ -39,46 +39,44 @@ export default function RegisterScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const validateFields = async () => {
-    return registerSchema
-      .validate(user, { abortEarly: false })
-      .then(() => {
-        setErrors({});
-        return true;
-      })
-      .catch((validationErrors) => {
-        const formattedErrors = {};
-        validationErrors.inner.forEach((error) => {
-          formattedErrors[error.path] = error.message;
-        });
-        setErrors(formattedErrors);
-        return false;
+    try {
+      await registerSchema.validate(user, { abortEarly: false });
+      setErrors({});
+      return true;
+    } catch (validationErrors) {
+      const formattedErrors = {};
+      validationErrors.inner.forEach((error) => {
+        formattedErrors[error.path] = error.message;
       });
+      setErrors(formattedErrors);
+      return false;
+    }
   };
 
-  const handleRegister = () => {
-    setApiError("");
-    setSuccessMessage("");
-
-    validateFields().then((isValid) => {
-      if (!isValid) {
-        return;
-      }
+  const handleRegister = async () => {
+    try {
+      setApiError("");
+      setSuccessMessage("");
+      const isValid = await validateFields();
+      if (!isValid) return;
 
       setIsLoading(true);
-      register(user.firstName, user.lastName, user.email, user.password)
-        .then((data) => {
-          setSuccessMessage(data.message || "Registro bem-sucedido!");
-          setTimeout(() => {
-            navigation.navigate("Login");
-          }, 500);
-        })
-        .catch((error) => {
-          setApiError(error.message || "Erro ao registrar.");
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    });
+      const data = await register(
+        user.firstName,
+        user.lastName,
+        user.email,
+        user.password
+      );
+      setSuccessMessage(data.message || "Registro bem-sucedido!");
+      setTimeout(() => {
+        navigation.navigate("Login");
+      }, 500);
+    } catch (error) {
+      const errorMessage = error.message || "Erro ao registrar";
+      setApiError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (field, value) => {
