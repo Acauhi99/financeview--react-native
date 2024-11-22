@@ -108,7 +108,7 @@ export default function PortfolioScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Meu Portfolio</Text>
+      <Text style={styles.title}>Meu Portfólio</Text>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
