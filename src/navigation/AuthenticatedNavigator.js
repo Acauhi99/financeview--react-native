@@ -19,6 +19,7 @@ export default function AuthenticatedNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+        unmountOnBlur: true,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
