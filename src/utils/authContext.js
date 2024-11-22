@@ -16,14 +16,14 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoading(true);
       const data = await loginService(email, password);
-      if (data.token) {
+
+      if (data && data.token && typeof data.token === "string") {
         setToken(data.token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
       } else {
-        throw new Error("Token não fornecido pela API.");
+        throw new Error("Token inválido ou não fornecido pela API");
       }
     } catch (error) {
-      console.error("Erro no login:", error);
       throw error;
     } finally {
       setIsLoading(false);

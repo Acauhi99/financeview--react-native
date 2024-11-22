@@ -13,7 +13,10 @@ export const register = async (firstName, lastName, email, password) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    if (error.response && error.response.data) {
+      throw new Error(error.response.data.message || "Erro ao registrar");
+    }
+    throw new Error("Erro de conexão com o servidor");
   }
 };
 
@@ -25,7 +28,10 @@ export const login = async (email, password) => {
     });
     return response.data;
   } catch (error) {
-    throw error.response.data;
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error("Erro de conexão com o servidor");
   }
 };
 
