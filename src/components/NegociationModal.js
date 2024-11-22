@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   View,
@@ -24,17 +24,30 @@ export default function NegociationModal({
 
   const totalAmount = stock?.currentPrice * parseInt(quantity || 0);
 
-  const handleTransaction = () => {
+  useEffect(() => {
+    if (!visible) {
+      setQuantity("");
+    }
+  }, [visible]);
+
+  const handleTransaction = async () => {
     if (!quantity) return;
-    if (transactionType === "BUY") {
-      onBuy(quantity);
-    } else {
-      onSell(quantity);
+
+    try {
+      if (transactionType === "BUY") {
+        await onBuy(quantity);
+      } else {
+        await onSell(quantity);
+      }
+      setQuantity("");
+    } catch (error) {
+      console.error(error);
     }
   };
 
   const handleBackdropPress = () => {
     if (!isLoading) {
+      setQuantity("");
       onClose();
     }
   };
