@@ -253,4 +253,69 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 32,
   },
+  portfolioCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 24,
+    width: "90%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    marginBottom: 24,
+  },
+
+  balanceLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    fontWeight: "600",
+  },
+
+  balanceText: {
+    fontSize: 36,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginBottom: 24,
+    letterSpacing: -0.5,
+  },
+
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 16,
+    gap: 12,
+  },
+
+  button: {
+    flex: 1,
+    backgroundColor: "#007AFF",
+    paddingVertical: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  depositButton: {
+    backgroundColor: "#34C759",
+  },
+
+  withdrawButton: {
+    backgroundColor: "#FF3B30",
+  },
+
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+    letterSpacing: 0.5,
+  },
 });
