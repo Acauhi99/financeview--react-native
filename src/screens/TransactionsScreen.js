@@ -49,7 +49,7 @@ export default function TransactionsScreen() {
       const data = await getPortfolio(token);
       setPortfolio(data);
     } catch (error) {
-      Alert.alert("Erro", "Erro ao carregar portfolio");
+      Alert.alert("Erro", "Erro ao carregar portifolio");
     }
   };
 
