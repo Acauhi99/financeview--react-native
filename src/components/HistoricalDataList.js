@@ -1,7 +1,10 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 export default function HistoricalDataList({ historicalData }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   if (!Array.isArray(historicalData) || historicalData.length === 0) {
     return (
       <View style={styles.errorContainer}>
@@ -39,10 +42,26 @@ export default function HistoricalDataList({ historicalData }) {
     );
   }
 
+  const totalPages = Math.ceil(validData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = validData.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
   return (
     <View>
       <Text style={styles.sectionTitle}>Dados Históricos</Text>
-      {validData.map((item, index) => (
+      {paginatedData.map((item, index) => (
         <View
           key={`historical-${item.date.getTime()}-${index}`}
           style={styles.historicalItem}
@@ -72,6 +91,34 @@ export default function HistoricalDataList({ historicalData }) {
           </Text>
         </View>
       ))}
+
+      <View style={styles.paginationContainer}>
+        <TouchableOpacity
+          onPress={handlePreviousPage}
+          disabled={currentPage === 1}
+          style={[
+            styles.paginationButton,
+            currentPage === 1 && styles.paginationButtonDisabled,
+          ]}
+        >
+          <Text style={styles.paginationButtonText}>Anterior</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.paginationInfo}>
+          Página {currentPage} de {totalPages}
+        </Text>
+
+        <TouchableOpacity
+          onPress={handleNextPage}
+          disabled={currentPage === totalPages}
+          style={[
+            styles.paginationButton,
+            currentPage === totalPages && styles.paginationButtonDisabled,
+          ]}
+        >
+          <Text style={styles.paginationButtonText}>Próxima</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -120,5 +167,33 @@ const styles = StyleSheet.create({
   errorText: {
     color: "#666",
     fontSize: 16,
+  },
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  paginationButton: {
+    backgroundColor: "#007AFF",
+    padding: 10,
+    borderRadius: 6,
+    minWidth: 100,
+    alignItems: "center",
+  },
+  paginationButtonDisabled: {
+    backgroundColor: "#ccc",
+  },
+  paginationButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  paginationInfo: {
+    fontSize: 14,
+    color: "#666",
   },
 });
