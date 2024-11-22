@@ -145,18 +145,24 @@ export default function PortfolioScreen() {
             <PositionCard positions={positions} />
           </>
         ) : (
-          <>
-            <Text style={styles.message}>
-              Parece que você ainda não tem um portfolio
-            </Text>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleCreatePortfolio}
-              disabled={isLoading}
-            >
-              <Text style={styles.buttonText}>Criar Portfolio</Text>
-            </TouchableOpacity>
-          </>
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStateCard}>
+              <Text style={styles.emptyStateTitle}>Bem-vindo!</Text>
+              <Text style={styles.emptyStateMessage}>
+                Você ainda não possui um portfólio.{"\n"}
+                Crie agora para começar a investir!
+              </Text>
+              <TouchableOpacity
+                style={styles.createPortfolioButton}
+                onPress={handleCreatePortfolio}
+                disabled={isLoading}
+              >
+                <Text style={styles.createPortfolioButtonText}>
+                  Criar Meu Primeiro Portfólio
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
         {error && <Text style={styles.error}>{error}</Text>}
       </ScrollView>
@@ -312,6 +318,63 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+    letterSpacing: 0.5,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    width: "100%",
+  },
+
+  emptyStateCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 32,
+    width: "100%",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
+  emptyStateTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1a1a1a",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+
+  emptyStateMessage: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 32,
+  },
+
+  createPortfolioButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: "100%",
+    shadowColor: "#007AFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+
+  createPortfolioButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
