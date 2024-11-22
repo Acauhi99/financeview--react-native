@@ -3,7 +3,7 @@ import { Dimensions, StyleSheet, View, Text } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 
 export default function StockChart({ historicalData }) {
-  const screenWidth = Dimensions.get("window").width - 40;
+  const screenWidth = Dimensions.get("window").width - 65;
 
   if (!Array.isArray(historicalData) || historicalData.length === 0) {
     return (
@@ -28,7 +28,8 @@ export default function StockChart({ historicalData }) {
         !isNaN(item.high) &&
         !isNaN(item.low)
     )
-    .sort((a, b) => a.date - b.date);
+    .sort((a, b) => a.date - b.date)
+    .slice(-30);
 
   if (validData.length < 2) {
     return (
@@ -41,17 +42,14 @@ export default function StockChart({ historicalData }) {
   }
 
   const chartData = {
-    labels: validData.map((item) =>
-      item.date.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-      })
+    labels: validData.map((item, index) =>
+      index % 5 === 0 ? item.date.getDate().toString().padStart(2, "0") : ""
     ),
     datasets: [
       {
         data: validData.map((item) => item.close),
-        color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-        strokeWidth: 2,
+        color: () => "#0047AB",
+        strokeWidth: 3,
       },
     ],
   };
@@ -61,42 +59,53 @@ export default function StockChart({ historicalData }) {
   const yAxisRange = maxY - minY;
 
   return (
-    <LineChart
-      data={chartData}
-      width={screenWidth}
-      height={220}
-      yAxisLabel="R$ "
-      chartConfig={{
-        backgroundColor: "#fff",
-        backgroundGradientFrom: "#fff",
-        backgroundGradientTo: "#fff",
-        decimalPlaces: 2,
-        color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-        labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-        propsForDots: {
-          r: "3",
-          strokeWidth: "1",
-          stroke: "#007AFF",
-        },
-        propsForLabels: {
-          fontSize: 10,
-          rotation: 45,
-        },
-      }}
-      withVerticalLines={false}
-      withHorizontalLines={true}
-      withDots={true}
-      withShadow={false}
-      bezier
-      style={styles.chart}
-      fromZero={false}
-      yMin={minY - yAxisRange * 0.05}
-      yMax={maxY + yAxisRange * 0.05}
-    />
+    <View style={styles.chartContainer}>
+      <LineChart
+        data={chartData}
+        width={screenWidth}
+        height={220}
+        yAxisLabel="R$ "
+        chartConfig={{
+          backgroundColor: "#fff",
+          backgroundGradientFrom: "#fff",
+          backgroundGradientTo: "#fff",
+          decimalPlaces: 2,
+          color: () => `rgb(0, 84, 227)`,
+          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+          fillShadowGradient: "rgb(0, 84, 227)",
+          fillShadowGradientOpacity: 0.6,
+          strokeWidth: 3,
+          propsForDots: {
+            r: "0",
+            strokeWidth: "0",
+          },
+          propsForLabels: {
+            fontSize: 12,
+            rotation: 0,
+          },
+          style: {
+            borderRadius: 16,
+          },
+        }}
+        withVerticalLines={false}
+        withHorizontalLines={true}
+        withDots={false}
+        withShadow={false}
+        bezier
+        style={styles.chart}
+        fromZero={false}
+        yMin={minY - yAxisRange * 0.05}
+        yMax={maxY + yAxisRange * 0.05}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  chartContainer: {
+    alignItems: "center",
+    paddingRight: 10,
+  },
   chart: {
     marginVertical: 8,
     borderRadius: 16,
